@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="To do list web app">
+<meta name="author" content="Asif Abdul Rahiman">
+<title>Bandwidth Utilisation</title>
+<link rel="shortcut icon" href="../../favicon.ico" type="image/x-icon">
+<link rel="icon" href="../../favicon.ico" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="../../mystyle.css">
+<link href="../../bootstrap.min.css" rel="stylesheet">  
+<link href="../../bootstrap-datepicker.css" rel="stylesheet">  
+<script src="../../jquery.js"></script>  
+<script src="../../bootstrap.min.js"></script>  
+<script src="../../bootstrap-datepicker.js"></script> 
+<script src="../../angular.min.js"></script>
+</head>
+<script>
+var app = angular.module("rellist", []); 
+app.controller("myCtrl", function($scope, $filter,$http) {
+    $scope.rel = [];
+	 
+    $http({
+      method: 'GET',
+      url: 'get.php'
+   }).then(function (success){
+   
+	var _len = success.data.length;
+  var  post, i;
+
+  for (i = 0; i < _len; i++) {
+    //debugger
+    post = success.data[i];
+	$scope.rel.push({'Rel':post.rel});
+  }
+   },function (error){
+	alert(error);
+   });  
+    
+    $scope.addItem = function () {
+        $scope.errortext = "";
+		
+		
+        if (!$scope.addrel) {alert("Please fill the details");return;} 
+		
+		var nrel={'Rel':$scope.addrel};
+		var newrel=true;
+		angular.forEach($scope.rel, function(item) {
+			if( item.Rel.indexOf(nrel.Rel)==0){
+				
+						newrel=false;}
+			});
+			if(newrel)
+			{
+				$scope.rel.push(nrel);
+				var data1=$scope.addrel;
+				var dataString = 'rel='+ data1;
+				$scope.addrel=""
+				
+				
+				
+				
+				$.ajax({
+				type: "POST",
+				url: "add.php",
+				data: dataString,
+				cache: false,
+				success: function(result){}
+				});
+				
+				
+			}
+			else{
+				alert('Release already present');
+			}
+		
+		
+           
+    }
+    $scope.removeItem = function (x) {
+		var index = $scope.rel.indexOf(x);
+		if (index != -1) {
+        $scope.errortext = ""; 
+		var datastring = 'rel='+ $scope.rel[index].Rel;
+		$.ajax({
+		type: "POST",
+		url: "remove.php",
+		data: datastring,
+		cache: false,
+		success: function(result){}
+		});
+        $scope.rel.splice(index, 1);
+		}
+    }
+});
+</script>
+
+<body ng-app="rellist" ng-controller="myCtrl">
+<div class="header1">
+<img src="../../logo.jpg" class="logo"/>
+<h2 style="margin-left:6%">Bandwidth Utilisation</h2>
+</div>
+<div class="header">
+  <h2>Add a Release</h2>
+<div >
+<input type="text" placeholder="Enter Release" ng-model="addrel">
+<span ng-click="addItem()" class="addBtn semi-square">Add</span>
+
+  
+</div>
+</div>
+<table>
+	<tr style="background-color:#eee;"><td>Release</td><td>Delete</td></tr>
+    <tr ng-repeat="x in rel" ng-class-even="'trcolour'" ><td>  {{x.Rel}} </td><td><span ng-click="removeItem(x)">clear</span></td></tr>
+ </table>
+</body>
+
+</html>

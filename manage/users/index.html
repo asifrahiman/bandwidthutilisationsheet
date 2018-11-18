@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="To do list web app">
+<meta name="author" content="Asif Abdul Rahiman">
+<title>Bandwidth Utilisation</title>
+<link rel="shortcut icon" href="../../favicon.ico" type="image/x-icon">
+<link rel="icon" href="../../favicon.ico" type="image/x-icon">
+<link rel="stylesheet" type="text/css" href="../../mystyle.css">
+<link href="../../bootstrap.min.css" rel="stylesheet">  
+<link href="../../bootstrap-datepicker.css" rel="stylesheet">  
+<script src="../../jquery.js"></script>  
+<script src="../../bootstrap.min.js"></script>  
+<script src="../../bootstrap-datepicker.js"></script> 
+<script src="../../angular.min.js"></script>
+</head>
+
+<script>
+var app = angular.module("userlist", []); 
+app.controller("myCtrl", function($scope, $filter,$http) {
+    $scope.users = [];
+	 
+    $http({
+      method: 'GET',
+      url: 'get.php'
+   }).then(function (success){
+   
+	var _len = success.data.length;
+  var  post, i;
+
+  for (i = 0; i < _len; i++) {
+    //debugger
+    post = success.data[i];
+	$scope.users.push({'Name':post.name,'Prodarea':post.prodarea});
+  }
+   },function (error){
+	alert(error);
+   });  
+    
+    $scope.addItem = function () {
+        $scope.errortext = "";
+		
+		
+        if (!$scope.addname||!$scope.addarea) {alert("Please fill all the details");return;} 
+		$("#example1").val('');
+		var nuser={'Name':$scope.addname,'Prodarea':$scope.addarea};
+		var newuser=true;
+		angular.forEach($scope.users, function(item) {
+			if( item.Name.indexOf(nuser.Name)==0){
+				
+						newuser=false;}
+			});
+			if(newuser)
+			{
+				$scope.users.push(nuser);
+				var data1=$scope.addname;
+				var data2=$scope.addarea;
+				var data3=$scope.addtype;
+				var dataString = 'name='+ data1 + '&prodarea='+ data2 ;
+				$scope.addname=""
+				$scope.addarea=""
+				
+				
+				$.ajax({
+				type: "POST",
+				url: "add.php",
+				data: dataString,
+				cache: false,
+				success: function(result){}
+				});
+				
+				
+			}
+			else{
+				alert('User already present');
+			}
+		
+		
+           
+    }
+    $scope.removeItem = function (x) {
+		var index = $scope.users.indexOf(x);
+		if (index != -1) {
+        $scope.errortext = ""; 
+		var datastring = 'name='+ $scope.users[index].Name + '&prodarea='+ $scope.users[index].Prodarea;
+		$.ajax({
+		type: "POST",
+		url: "remove.php",
+		data: datastring,
+		cache: false,
+		success: function(result){}
+		});
+        $scope.users.splice(index, 1);
+		}
+    }
+});
+</script>
+
+<body ng-app="userlist" ng-controller="myCtrl">
+<div class="header1">
+<img src="../../logo.jpg" class="logo"/>
+<h2 style="margin-left:6%">Bandwidth Utilisation</h2>
+</div>
+<div class="header">
+  <h2>Add a new User</h2>
+<div >
+<input type="text" placeholder="Enter Name" ng-model="addname">
+
+<select class="typeBtn styled-select semi-square" ng-model="addarea">
+    <option value="">Select Product Area</option>
+    <option value="RMS">RMS</option>
+    <option value="MALL">MALL</option>
+	
+  </select>
+ <span ng-click="addItem()" class="addBtn semi-square">Add</span>
+
+  
+</div>
+</div>
+<table>
+	<tr style="background-color:#eee;"><td>NAME</td><td>PRODUCT AREA</td><td>Delete</td></tr>
+    <tr ng-repeat="x in users| orderBy:['-Prodarea', 'Name']" ng-class-even="'trcolour'" ><td>  {{x.Name}} </td><td>  {{x.Prodarea}} </td><td><span ng-click="removeItem(x)">clear</span></td></tr>
+ </table>
+</body>
+
+</html>
